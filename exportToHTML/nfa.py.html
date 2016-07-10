@@ -1,0 +1,188 @@
+<html>
+<head>
+<title>nfa.py</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.ln { color: rgb(0,0,0); font-weight: normal; font-style: normal; }
+.s0 { color: rgb(0,0,128); font-weight: bold; }
+.s1 { color: rgb(0,0,0); }
+.s2 { color: rgb(0,128,0); font-weight: bold; }
+.s3 { color: rgb(0,0,255); }
+</style>
+</head>
+<BODY BGCOLOR="#ffffff">
+<TABLE CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#C0C0C0" >
+<TR><TD><CENTER>
+<FONT FACE="Arial, Helvetica" COLOR="#000000">
+nfa.py</FONT>
+</center></TD></TR></TABLE>
+<pre>
+<span class="s0">import </span><span class="s1">string 
+ 
+alphabet = [letter </span><span class="s0">for </span><span class="s1">letter </span><span class="s0">in </span><span class="s1">string.ascii_letters] + [</span><span class="s2">' '</span><span class="s1">] 
+ 
+count = </span><span class="s3">0</span><span class="s1"> 
+ 
+</span><span class="s0">def </span><span class="s1">get_next_state_tag(): 
+    </span><span class="s0">global </span><span class="s1">count 
+    count = count + </span><span class="s3">1</span><span class="s1"> 
+    </span><span class="s0">return </span><span class="s1">count 
+ 
+</span><span class="s0">def </span><span class="s1">get_final_states(states): 
+    </span><span class="s0">return </span><span class="s1">[state </span><span class="s0">for </span><span class="s1">state </span><span class="s0">in </span><span class="s1">states </span><span class="s0">if </span><span class="s1">state.isfinal </span><span class="s0">is </span><span class="s1">True] 
+ 
+ 
+</span><span class="s0">def </span><span class="s1">get_start_state(states): 
+    </span><span class="s0">for </span><span class="s1">state </span><span class="s0">in </span><span class="s1">states: 
+        </span><span class="s0">if </span><span class="s1">state.isstart </span><span class="s0">is </span><span class="s1">True: 
+            </span><span class="s0">return </span><span class="s1">state 
+ 
+ 
+</span><span class="s0">def </span><span class="s1">concat(nfa1, nfa2): 
+    states = [] 
+    nfa1.states[nfa1.get_final_state_index()].tag = nfa2.states[nfa2.get_start_state_index()].tag 
+    nfa1.states[nfa1.get_final_state_index()] = nfa2.states[nfa2.get_start_state_index()] 
+    </span><span class="s0">del </span><span class="s1">nfa2.states[nfa2.get_start_state_index()] 
+    nfa1.states[nfa1.get_final_state_index()].isstart = False 
+    states.extend(nfa1.states) 
+    states.extend(nfa2.states) 
+    new_nfa = NFA(states) 
+    </span><span class="s0">return </span><span class="s1">new_nfa 
+ 
+ 
+</span><span class="s0">def </span><span class="s1">slash(nfa1, nfa2): 
+    states = [] 
+    s_beg = State(get_next_state_tag(), isstart=True) 
+    s_end = State(get_next_state_tag(), isfinal=True) 
+ 
+    t1 = Transition(nfa1.states[nfa1.get_start_state_index()], </span><span class="s2">'e'</span><span class="s1">) 
+    t2 = Transition(nfa2.states[nfa2.get_start_state_index()], </span><span class="s2">'e'</span><span class="s1">) 
+    t3 = Transition(s_end, </span><span class="s2">'e'</span><span class="s1">) 
+    t4 = Transition(s_end, </span><span class="s2">'e'</span><span class="s1">) 
+ 
+    s_beg.add_transition_to(t1) 
+    s_beg.add_transition_to(t2) 
+    nfa1.states[nfa1.get_final_state_index()].add_transition_to(t3) 
+    nfa2.states[nfa2.get_final_state_index()].add_transition_to(t4) 
+ 
+    nfa1.states[nfa1.get_start_state_index()].isstart = False 
+    nfa2.states[nfa2.get_start_state_index()].isstart = False 
+ 
+    nfa1.states[nfa1.get_final_state_index()].isfinal = False 
+    nfa2.states[nfa2.get_final_state_index()].isfinal = False 
+ 
+    states.extend(nfa1.states) 
+    states.extend(nfa2.states) 
+    states.extend([s_beg]) 
+    states.extend([s_end]) 
+ 
+    new_nfa = NFA(states) 
+    </span><span class="s0">return </span><span class="s1">new_nfa 
+ 
+ 
+</span><span class="s0">def </span><span class="s1">star(nfa): 
+    states = [] 
+    s_beg = State(get_next_state_tag(), isstart=True) 
+    s_end = State(get_next_state_tag(), isfinal=True) 
+ 
+    t1 = Transition(nfa.states[nfa.get_start_state_index()], </span><span class="s2">'e'</span><span class="s1">) 
+    t2 = Transition(s_end, </span><span class="s2">'e'</span><span class="s1">) 
+ 
+    s_beg.add_transition_to(t1) 
+    nfa.states[nfa.get_final_state_index()].add_transition_to(t2) 
+ 
+    t3 = Transition(nfa.states[nfa.get_start_state_index()], </span><span class="s2">'e'</span><span class="s1">) 
+    nfa.states[nfa.get_final_state_index()].add_transition_to(t3) 
+ 
+    t4 = Transition(s_end, </span><span class="s2">'e'</span><span class="s1">) 
+    s_beg.add_transition_to(t4) 
+ 
+    nfa.states[nfa.get_start_state_index()].isstart = False 
+    nfa.states[nfa.get_final_state_index()].isfinal = False 
+ 
+    states.extend(nfa.states) 
+    states.extend([s_beg]) 
+    states.extend([s_end]) 
+ 
+    new_nfa = NFA(states) 
+    </span><span class="s0">return </span><span class="s1">new_nfa 
+ 
+ 
+ 
+ 
+</span><span class="s0">class </span><span class="s1">NFA: 
+    </span><span class="s0">def </span><span class="s1">__init__(self, states): 
+        self.set_states(states) 
+ 
+    </span><span class="s0">def </span><span class="s1">set_states(self, states): 
+        self.states = states 
+        self.alphabets = [] 
+        self.transitions = [] 
+        self.start_state = get_start_state(states) 
+        self.final_states = get_final_states(states) 
+        self.count = </span><span class="s3">0</span><span class="s1"> 
+        </span><span class="s0">for </span><span class="s1">state </span><span class="s0">in </span><span class="s1">states: 
+            [self.transitions.append(str(state) + </span><span class="s2">&quot;----&quot;</span><span class="s1">+str(trans.alphabets)+</span><span class="s2">&quot;----&gt;&quot;</span><span class="s1">+str(trans.state_to)) </span><span class="s0">for </span><span class="s1">trans </span><span class="s0">in </span><span class="s1">state.transitions] 
+            </span><span class="s0">for </span><span class="s1">trans </span><span class="s0">in </span><span class="s1">state.transitions: 
+                </span><span class="s0">if not </span><span class="s1">self.alphabets.__contains__(trans.alphabets): 
+                    self.alphabets.append(trans.alphabets) 
+ 
+ 
+ 
+    </span><span class="s0">def </span><span class="s1">get_start_state_index(self): 
+        </span><span class="s0">for </span><span class="s1">i </span><span class="s0">in </span><span class="s1">range(len(self.states)): 
+            </span><span class="s0">if </span><span class="s1">self.states[i].isstart </span><span class="s0">is </span><span class="s1">True: 
+                </span><span class="s0">return </span><span class="s1">i 
+        </span><span class="s0">return </span><span class="s1">-</span><span class="s3">1</span><span class="s1"> 
+ 
+ 
+    </span><span class="s0">def </span><span class="s1">get_final_state_index(self): 
+        </span><span class="s0">for </span><span class="s1">i </span><span class="s0">in </span><span class="s1">range(len(self.states)): 
+            </span><span class="s0">if </span><span class="s1">self.states[i].isfinal </span><span class="s0">is </span><span class="s1">True: 
+                </span><span class="s0">return </span><span class="s1">i 
+        </span><span class="s0">return </span><span class="s1">-</span><span class="s3">1</span><span class="s1"> 
+ 
+ 
+    </span><span class="s0">def </span><span class="s1">__str__(self): 
+        list = [trans </span><span class="s0">for </span><span class="s1">trans </span><span class="s0">in </span><span class="s1">self.transitions] 
+        t = </span><span class="s2">&quot;</span><span class="s0">\n</span><span class="s2">&quot; </span><span class="s1">+</span><span class="s2">&quot;</span><span class="s0">\n</span><span class="s2">&quot;</span><span class="s1">.join(list) 
+        </span><span class="s0">return </span><span class="s2">&quot;</span><span class="s0">\n</span><span class="s2">States = &quot; </span><span class="s1">+ str([state </span><span class="s0">for </span><span class="s1">state </span><span class="s0">in </span><span class="s1">self.states]) + \ 
+               </span><span class="s2">&quot;</span><span class="s0">\n</span><span class="s2">Alphabets = &quot; </span><span class="s1">+ str([alph </span><span class="s0">for </span><span class="s1">alph </span><span class="s0">in </span><span class="s1">self.alphabets]) + \ 
+               </span><span class="s2">&quot;</span><span class="s0">\n</span><span class="s2">Transitions = &quot; </span><span class="s1">+ str(t) + \ 
+               </span><span class="s2">&quot;</span><span class="s0">\n</span><span class="s2">Start State = &quot; </span><span class="s1">+ str(self.start_state) + \ 
+               </span><span class="s2">&quot;</span><span class="s0">\n</span><span class="s2">Final States = &quot; </span><span class="s1">+ str([fin </span><span class="s0">for </span><span class="s1">fin </span><span class="s0">in </span><span class="s1">self.final_states]) 
+ 
+ 
+ 
+</span><span class="s0">class </span><span class="s1">Transition: 
+    </span><span class="s0">def </span><span class="s1">__init__(self, state_to, alphabets): 
+        self.alphabets = alphabets 
+        self.state_to = state_to 
+ 
+    </span><span class="s0">def </span><span class="s1">__str__(self): 
+        </span><span class="s0">return </span><span class="s1">str(self.alphabets) + </span><span class="s2">&quot; to &quot; </span><span class="s1">+ str(self.state_to) 
+ 
+    </span><span class="s0">def </span><span class="s1">__repr__(self): 
+        </span><span class="s0">return </span><span class="s1">str(self.alphabets) + </span><span class="s2">&quot; to &quot; </span><span class="s1">+ str(self.state_to) 
+ 
+ 
+</span><span class="s0">class </span><span class="s1">State: 
+    </span><span class="s0">def </span><span class="s1">__init__(self, tag, isstart=False, isfinal=False): 
+        self.tag = tag 
+        self.isstart = isstart 
+        self.isfinal = isfinal 
+        self.transitions = set() 
+ 
+    </span><span class="s0">def </span><span class="s1">add_transition_to(self, transition): 
+        self.transitions.add(transition) 
+ 
+    </span><span class="s0">def </span><span class="s1">__str__(self): 
+        </span><span class="s0">return </span><span class="s1">str(self.tag) 
+ 
+    </span><span class="s0">def </span><span class="s1">__repr__(self): 
+        </span><span class="s0">return </span><span class="s1">str(self.tag) 
+ 
+ 
+</span></pre>
+</body>
+</html>

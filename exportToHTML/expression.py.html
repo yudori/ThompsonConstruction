@@ -1,0 +1,95 @@
+<html>
+<head>
+<title>expression.py</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.ln { color: rgb(0,0,0); font-weight: normal; font-style: normal; }
+.s0 { color: rgb(0,0,128); font-weight: bold; }
+.s1 { color: rgb(0,0,0); }
+.s2 { color: rgb(0,128,0); font-weight: bold; }
+.s3 { color: rgb(0,0,255); }
+</style>
+</head>
+<BODY BGCOLOR="#ffffff">
+<TABLE CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#C0C0C0" >
+<TR><TD><CENTER>
+<FONT FACE="Arial, Helvetica" COLOR="#000000">
+expression.py</FONT>
+</center></TD></TR></TABLE>
+<pre>
+<span class="s0">from </span><span class="s1">nfa </span><span class="s0">import </span><span class="s1">* 
+ 
+</span><span class="s0">def </span><span class="s1">postfix_to_nfa(postfix): 
+    stack = [] 
+    </span><span class="s0">for </span><span class="s1">char </span><span class="s0">in </span><span class="s1">postfix: 
+        </span><span class="s0">if </span><span class="s1">char </span><span class="s0">in </span><span class="s1">alphabet: 
+ 
+            s1 = State(get_next_state_tag(), isstart=True) 
+            s2 = State(get_next_state_tag(), isfinal=True) 
+            t1 = Transition(s2, char) 
+            s1.transitions.add(t1) 
+            _nfa = NFA([s1, s2]) 
+            stack.append(_nfa) 
+ 
+        </span><span class="s0">elif </span><span class="s1">char == </span><span class="s2">'.'</span><span class="s1">: 
+            x2 = stack.pop() 
+            x1 = stack.pop() 
+            stack.append(concat(x1,x2)) 
+ 
+        </span><span class="s0">elif </span><span class="s1">char == </span><span class="s2">'|'</span><span class="s1">: 
+            x2 = stack.pop() 
+            x1 = stack.pop() 
+            stack.append(slash(x1, x2)) 
+ 
+        </span><span class="s0">elif </span><span class="s1">char == </span><span class="s2">'*'</span><span class="s1">: 
+            x1 = stack.pop() 
+            stack.append(star(x1)) 
+ 
+        </span><span class="s0">print </span><span class="s2">&quot;_____________________________________&quot;</span><span class="s1"> 
+        </span><span class="s0">print </span><span class="s1">stack[len(stack) - </span><span class="s3">1</span><span class="s1">] 
+ 
+    </span><span class="s0">if </span><span class="s1">stack: 
+        nfa = stack.pop() 
+        </span><span class="s0">return </span><span class="s1">nfa 
+ 
+ 
+</span><span class="s0">def </span><span class="s1">re_to_postfix(infix): 
+    precedence = {</span><span class="s2">'*'</span><span class="s1">: </span><span class="s3">3</span><span class="s1">, </span><span class="s2">'+'</span><span class="s1">: </span><span class="s3">3</span><span class="s1">, </span><span class="s2">'?'</span><span class="s1">: </span><span class="s3">3</span><span class="s1">, </span><span class="s2">'.'</span><span class="s1">: </span><span class="s3">2</span><span class="s1">, </span><span class="s2">'|'</span><span class="s1">: </span><span class="s3">1</span><span class="s1">} 
+    operators = precedence.keys() 
+    binary_operators = [</span><span class="s2">'|'</span><span class="s1">, </span><span class="s2">'.'</span><span class="s1">] 
+    unary_operators = [</span><span class="s2">'?'</span><span class="s1">, </span><span class="s2">'*'</span><span class="s1">, </span><span class="s2">'+'</span><span class="s1">] 
+ 
+    stack = [] 
+    output = [] 
+ 
+    i = </span><span class="s3">0</span><span class="s1"> 
+    </span><span class="s0">while </span><span class="s1">i &lt; len(infix): 
+        e = infix[i] 
+        </span><span class="s0">if </span><span class="s1">e </span><span class="s0">in </span><span class="s1">alphabet: 
+            output.append(e) 
+        </span><span class="s0">elif </span><span class="s1">e </span><span class="s0">in </span><span class="s1">operators: 
+            o1 = e 
+            </span><span class="s0">while </span><span class="s1">stack </span><span class="s0">and </span><span class="s1">stack[-</span><span class="s3">1</span><span class="s1">] </span><span class="s0">in </span><span class="s1">operators: 
+                o2 = stack[-</span><span class="s3">1</span><span class="s1">] 
+                </span><span class="s0">if </span><span class="s1">o1 </span><span class="s0">in </span><span class="s1">binary_operators </span><span class="s0">and </span><span class="s1">precedence[o2] &gt;= precedence[o1] </span><span class="s0">or </span><span class="s1">\ 
+                                        o1 </span><span class="s0">in </span><span class="s1">unary_operators </span><span class="s0">and </span><span class="s1">precedence[o2] &gt; precedence[o1]: 
+                    output.append(stack.pop()) 
+                </span><span class="s0">else</span><span class="s1">: 
+                    </span><span class="s0">break</span><span class="s1"> 
+            stack.append(e) 
+        </span><span class="s0">elif </span><span class="s1">e == </span><span class="s2">'('</span><span class="s1">: 
+            stack.append(e) 
+        </span><span class="s0">elif </span><span class="s1">e == </span><span class="s2">')'</span><span class="s1">: 
+            stack_element = stack.pop() 
+            </span><span class="s0">while </span><span class="s1">stack_element != </span><span class="s2">'('</span><span class="s1">: 
+                output.append(stack_element) 
+                stack_element = stack.pop() 
+        i += </span><span class="s3">1</span><span class="s1"> 
+    </span><span class="s0">while </span><span class="s1">stack: 
+        top = stack.pop() 
+        </span><span class="s0">if </span><span class="s1">top != </span><span class="s2">'('</span><span class="s1">: 
+            output.append(top) 
+    </span><span class="s0">return </span><span class="s1">output 
+</span></pre>
+</body>
+</html>
